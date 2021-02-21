@@ -1,0 +1,467 @@
+<html>
+  <head>
+    <title>仓储环境监控系统</title> 
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+	<script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.min.js"></script>
+	<script language="javascript">
+		var t = null;
+		t = setTimeout(time,1000);//开始执行
+		function time()
+		{
+			clearTimeout(t);//清除定时器
+			dt = new Date();
+			var y=dt.getYear()+1900;
+			var mm=dt.getMonth()+1;
+			var d=dt.getDate();
+			var weekday=["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+			var day=dt.getDay();
+			var h=dt.getHours();
+			var m=dt.getMinutes();
+			var s=dt.getSeconds();
+			if(h<10){h="0"+h;}
+			if(m<10){m="0"+m;}
+			if(s<10){s="0"+s;}
+			document.getElementById("timeShow").innerHTML =  ""+y+"年"+mm+"月"+d+"日"+"<br>"+weekday[day]+"<br>"+" "+h+":"+m+":"+s+"";
+			t = setTimeout(time,1000); //设定定时器，循环执行           
+		}
+		window.onload=time;
+		</script type="text/css">
+		<style>
+			.content{
+				height:100%;
+				width:24%;
+				
+			}
+			.content_sub{
+				border-bottom:1px solide black; 
+				height:20%;
+				padding:0 0 2% 2%;
+				
+			}
+			.content_body{
+				border-bottom:1px solide black; 
+				padding:0 0 2% 2%;
+				height:80%;
+				background-color:#00ccff;
+				text-align: center;
+				justify-content: center;
+				display: flex;			
+				flex-direction: column;
+
+			}
+			.content_item{
+				
+				font-size:20px bold;
+			}
+			
+			.content_ctl{
+				height:100%;
+				width:24%;
+				text-align: center;
+				text-align: center;
+				justify-content: center;
+				display: flex;			
+				flex-direction: column;	
+			
+				
+			}
+			#mybtn{
+					width:200px;
+					height:30px;
+					line-height:30px;
+					border-radius:20px;
+					background:#F69;
+					color:#FFF;
+					text-align:center;
+					
+				}
+
+			#a11111 {
+				font-size:20px;
+				color: #FFF;
+				text-decoration: none;
+				
+			}
+			
+			#a11111:hover 
+			{
+				 color:#0FF; 
+				 text-decoration:none; 
+				 cursor:pointer;  
+			}
+			
+			.container {
+				position: relative;
+				width:80%;
+				height:80%;
+			}
+
+			.container canvas {
+				display: block;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+			}
+			.dot {
+				position: absolute;
+				width: 20%;
+				height: 20%;
+				left: 41%;
+				top: 41%;
+				background: url(./01.gif) no-repeat;
+				background-size:100%;
+				z-index: 200;
+			}
+			/* 产生动画（向外扩散变大）的圆圈  */
+			.pulse,.pulse-big {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				border: 2px solid #EF2D02;
+				background: rgba(239, 45, 2, 0.8);
+				border-radius: 50%;
+				z-index: 100;
+				opacity: 0;
+			}
+			.pulse{
+			   background: rgba(239, 45, 2, 0.6)!important;
+				-webkit-animation: warn 0.9s ease-out;
+				-moz-animation: warn 0.9s ease-out;
+				animation: warn 0.9s ease-out;
+				-webkit-animation-iteration-count: infinite;
+				-moz-animation-iteration-count: infinite;
+				animation-iteration-count: infinite;
+				box-shadow: 1px 1px 30px #EF2D02;
+			}
+			.pulse-big{
+				background: rgba(239, 45, 2, 0.6)!important;
+				-webkit-animation: warn1 0.9s ease-out;
+				-moz-animation: warn1 0.9s ease-out;
+				animation: warn1 0.9s ease-out;
+				-webkit-animation-iteration-count: infinite;
+				-moz-animation-iteration-count: infinite;
+				animation-iteration-count: infinite;
+				box-shadow: 1px 1px 30px #EF2D02;
+			}
+
+			@keyframes warn {
+				0% {
+					  -moz-transform: scale(0);
+					  transform: scale(0);
+					  opacity: 1;
+				}
+				100% {
+					  -moz-transform: scale(1);
+					  transform: scale(1);
+					  opacity: 0;
+				}
+			}
+
+			@keyframes warn1 {
+				0% {
+				  -o-transform: scale(0);
+				  transform: scale(0);
+				  opacity: 1;
+				}
+				100% {
+				  -o-transform: scale(0.6);
+				  transform: scale(0.6);
+				  opacity: 0;
+				}
+			}
+
+		</style>
+		<style>
+	
+			.testswitch {
+				position: relative;
+				float: left; 
+				width: 90px;
+				margin: 0 auto;
+				-webkit-user-select:none; 
+				-moz-user-select:none; 
+				-ms-user-select: none;
+				
+			}
+			 
+			.testswitch-checkbox {
+				display: none;
+			}
+			 
+			.testswitch-label {
+				display: block; 
+				overflow: hidden; 
+				cursor: pointer;
+				border: 2px solid #999999; 
+				border-radius: 20px;
+			}
+			 
+			.testswitch-inner {
+				display: block; 
+				width: 200%; 
+				margin-left: -100%;
+				transition: margin 0.3s ease-in 0s;
+			}
+			 
+			.testswitch-inner::before, .testswitch-inner::after {
+				display: block; 
+				float: right; 
+				width: 50%; 
+				height: 30px; 
+				padding: 0; 
+				line-height: 30px;
+				font-size: 14px; 
+				color: white; 
+				font-family: 
+				Trebuchet, Arial, sans-serif; 
+				font-weight: bold;
+				box-sizing: border-box;
+			}
+			 
+			.testswitch-inner::after {
+				content: attr(data-on);
+				padding-left: 10px;
+				background-color: #00e500; 
+				color: #FFFFFF;
+			}
+			 
+			.testswitch-inner::before {
+				content: attr(data-off);
+				padding-right: 10px;
+				background-color: #EEEEEE; 
+				color: #999999;
+				text-align: right;
+			}
+			 
+			.testswitch-switch {
+				position: absolute; 
+				display: block; 
+				width: 22px;
+				height: 22px;
+				margin: 4px;
+				background: #FFFFFF;
+				top: 0; 
+				bottom: 0;
+				right: 56px;
+				border: 2px solid #999999; 
+				border-radius: 20px;
+				transition: all 0.3s ease-in 0s;
+			}
+			 
+			.testswitch-checkbox:checked + .testswitch-label .testswitch-inner {
+				margin-left: 0;
+			}
+			 
+			.testswitch-checkbox:checked + .testswitch-label .testswitch-switch {
+				right: 0px; 
+			}	
+		</style>
+	  		<script>
+
+			client = new Paho.MQTT.Client("120.78.170.20", Number(8083), "qbn111111");
+			//初始化客户端选项 conn_opts
+			client.connect({
+
+						  onSuccess: onConnect
+			}
+			);
+			//连接服务器并注册连接成功处理事件
+			function onConnect() {
+				console.log("onConnected");
+				document.getElementById("status").innerHTML="Connected to Server";
+				client.subscribe("sensor/data", {
+					qos: 0
+				}
+				);
+			}
+			client.onConnectionLost = onConnectionLost;
+			//注册连接断开处理事件
+			client.onMessageArrived = onMessageArrived;
+			//注册消息接收处理事件
+			function onConnectionLost(responseObject) {
+				console.log("Lost Connection");
+				document.getElementById("status").innerHTML="Disconnected to Server";
+			}
+			function onMessageArrived(message) {
+				try{
+				    
+					console.log("收到类型:" + message.destinationName);
+					console.log("收到消息:" + message.payloadString);
+					let g = JSON.parse(message.payloadString);
+					console.log(g);
+					if(g.type=="tep"){
+						document.getElementById("tempShow").innerHTML =  g.value+"℃";// 写入温度
+					}else  if(g.type=="moi"){
+						document.getElementById("MoistShow").innerHTML =  g.value+"%";// 写入湿度
+					}else  if(g.type=="lgt"){
+						document.getElementById("LightShow").innerHTML =  (g.value).toFixed(2)+"%";// 写入光照强度
+					}else if(g.type=="led"){
+						if(g.value==1)
+							document.getElementById("LEDSwitch").checked=true;
+						if(g.value==0)
+							document.getElementById("LEDSwitch").checked=false;
+							
+					}else  if(g.type=="buz"){
+						if(g.value==1)
+							document.getElementById("BUZZSwitch").checked=true;
+						if(g.value==0)
+							document.getElementById("BUZZSwitch").checked=false;
+					}else if(g.type=="mot"){
+						if(g.value==1)
+							document.getElementById("MOTORSwitch").checked=true;
+						if(g.value==0)
+							document.getElementById("MOTORSwitch").checked=false;
+					}else if(g.type="fog"){
+					
+						if(g.value==1)
+							document.getElementById("fog_warning").style.display='block';
+						if(g.value==0)
+							document.getElementById("fog_warning").style.display='none';						
+					}
+						
+				}
+				catch(e){
+					console.log(e);
+				}
+			}
+		</script>
+ 
+	  <script type="text/javascript">
+	  
+		$(document).ready(function() {
+			$("#LEDSwitch").on('click', function(){
+				LEDSwitch()
+			});
+		 
+			var LEDSwitch = function() {
+				if ($("#LEDSwitch").is(':checked')) {
+	
+					client.send("control", payload='{ "type": "led","value":1 }', qos=0)
+				} else {
+
+					client.send("control", payload='{ "type": "led","value":0 }', qos=0)
+				}
+			};
+
+
+			$("#MOTORSwitch").on('click', function(){
+				MOTORSwitch()
+			});
+		 
+			var MOTORSwitch = function() {
+				if ($("#MOTORSwitch").is(':checked')) {
+					client.send("control", payload='{ "type": "mot","value":1 }', qos=0)
+				} else {
+					client.send("control", payload='{ "type": "mot","value":0 }', qos=0)
+				}
+			};			
+
+
+			$("#BUZZSwitch").on('click', function(){
+				BUZZSwitch()
+			});
+		 
+			var BUZZSwitch = function() {
+				if ($("#BUZZSwitch").is(':checked')) {
+					client.send("control", payload='{ "type": "buz","value":1 }', qos=0)
+				} else {
+					client.send("control", payload='{ "type": "buz","value":0 }', qos=0)
+				}
+			};	
+			
+		});
+	  </script>
+
+	</head>
+  <body>
+    <div style="width:60%;margin:0 auto;height:100%;background-color:#FFFAFA;padding:10px;">
+		<h1 style="text-align:center;width:100%;">仓储环境监控系统 </h1>
+
+      <div >
+		<!----显示环境参数------>
+		<div style="height:30%;display:flex;flex-direction:rows;justify-content: space-between;margin-bottom:50px;">
+			<div class ="content" >
+				<div class ="content_sub" style="background-color:#0099ff;">
+				当前时间:
+				</div>
+				<div  class="content_body" style=" ">
+					<span id="timeShow" class="content_item">获取数据中......</span>
+				</div>			
+			</div>
+			<div class ="content" >
+				<div class ="content_sub"  style="background-color:#cc9966;">
+				温度
+				</div>
+				<div  class="content_body" style="background-color:#cccc66; ">
+					<span id="tempShow" class="content_item">获取数据中......</span>
+				</div>
+			</div>
+			<div class ="content" >
+				<div class ="content_sub"  style="background-color:#00F5FF;">
+				湿度
+				</div>
+				<div  class="content_body" style="background-color:#00FFFF; ">
+					<span id="MoistShow" class="content_item">获取数据中......</span>
+				</div>
+			</div>
+			<div class ="content" >
+				<div class ="content_sub"  style="background-color:#D15FEE;">
+				光照对比度
+				</div>
+				<div  class="content_body" style="background-color:#DDA0DD; ">
+					<span id="LightShow" class="content_item">获取数据中......</span>
+				</div>
+			</div>
+		</div>
+		<!----显示控制参数------>
+		<div style="height:30%;display:flex;flex-direction:rows;justify-content: space-between;">
+			<div  class ="content_ctl"  style="position:relative;">
+				<div class="testswitch">
+					<input class="testswitch-checkbox" id="LEDSwitch" type="checkbox">
+					<label class="testswitch-label" for="LEDSwitch">
+						<span class="testswitch-inner" data-on="ON" data-off="OFF"></span>
+						<span class="testswitch-switch"></span>
+					</label>
+				</div>
+				<div> LED控制</div>
+			</div>
+			<div  class ="content_ctl" >
+				<div class="testswitch">
+					<input class="testswitch-checkbox" id="MOTORSwitch" type="checkbox">
+					<label class="testswitch-label" for="MOTORSwitch">
+						<span class="testswitch-inner" data-on="ON" data-off="OFF"></span>
+						<span class="testswitch-switch"></span>
+					</label>
+				</div>
+				<div>电机控制</div>
+			</div>
+			<div  class ="content_ctl" >
+				<div class="testswitch">
+					<input class="testswitch-checkbox" id="BUZZSwitch" type="checkbox">
+					<label class="testswitch-label" for="BUZZSwitch">
+						<span class="testswitch-inner" data-on="ON" data-off="OFF"></span>
+						<span class="testswitch-switch"></span>
+					</label>
+				</div>
+
+				<div>蜂鸣器控制</div>
+			</div>
+			<div   class ="content_ctl" style="position:relative;text-align: center;justify-content: center;display: flex;flex-direction: column;display:none;" id="fog_warning"  >
+				<div class="container" >
+					<div class="dot"></div>
+					<div class="pulse"></div>
+					<div class="pulse-big"></div>
+				</div>
+				<div style="color:red;">火警状态</div>
+			</div>
+		<div>
+
+      </div>
+	
+    </div>
+	<div id="mybtn"><a id="a11111" href="history.php">仓储环境监控历史>></a></div>
+	<div style="height:5%;width:60%;display:flex;flex-direction:rows;justify-content: space-between;position:absolute;bottom:0;">
+			<span id="status" style="float:right;"></span>
+	</div>
+  </body>
+</html>
